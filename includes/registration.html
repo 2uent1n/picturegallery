@@ -6,7 +6,7 @@
             <div class="card bg-light mb-3">
                 <div class="card-body">
     <form action="check_registration.php" method="POST">
-        <?php echo csrf_token_field(); ?>
+        <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
         Registration username:<br>
         <input type="text" name="username" required><br>
         Registration password:<br>
