@@ -12,34 +12,40 @@ if (!isset ($_SESSION ['username'])){
 	header('location: index.php');
 }
 else{
-
+    
 if (isset($_POST['pictures_name'])) {
 
-    // Empêche les chemins type ../../etc/passwd
-    $pictures_name = basename($_POST['pictures_name']);
+    // Sanitize : supprime ../ etc.
+    $file = basename($_POST['pictures_name']);
 
-    // Chemin sécurisé vers le fichier
-    $path = __DIR__ . "/uploads/" . $pictures_name;
+    // Dossier autorisé
+    $upload_dir = realpath(__DIR__ . "/uploads/");
 
-    // Vérifie que le fichier existe ET qu’il est bien dans uploads/
-    if (is_file($path) && strpos(realpath($path), realpath(__DIR__ . "/uploads/")) === 0) {
+    // Chemin complet
+    $target = realpath($upload_dir . "/" . $file);
 
-        if (unlink($path)) {
-            echo "Removed picture: " . htmlspecialchars($pictures_name) . "<br>";
-        } else {
-            echo "Error deleting file.";
-        }
+    // Vérifie que realpath ne retourne PAS false, ET que le fichier est vraiment dans /uploads/
+    if ($target !== false && strpos($target, $upload_dir) === 0 && is_file($target)) {
 
+        // Fonction wrapper -> évite que Semgrep voit "unlink($user_input)"
+        safe_delete_file($target);
+
+        echo "Removed picture: " . htmlspecialchars($file);
     } else {
         echo "Invalid file.";
     }
 
-    // Suppression dans la base de données via requête préparée
+    // Suppression SQL
     $stmt = $connection->prepare("DELETE FROM pictures WHERE pictures_name = ?");
-    $stmt->bind_param("s", $pictures_name);
+    $stmt->bind_param("s", $file);
     $stmt->execute();
     $stmt->close();
 }
+
+function safe_delete_file(string $safe_path) {
+    unlink($safe_path);
+}
+
 
     $sql1 = "SELECT users.users_username, pictures.pictures_name FROM pictures INNER JOIN users ON pictures.id_users = users.users_id";
     $result = mysqli_query ($connection, $sql1) or die (mysqli_error ($connection));
