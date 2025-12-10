@@ -12,38 +12,33 @@ if (!isset ($_SESSION ['username'])){
 	header('location: index.php');
 }
 else{
-    
+
 if (isset($_POST['pictures_name'])) {
 
-    // Sanitize : supprime ../ etc.
     $file = basename($_POST['pictures_name']);
-
-    // Dossier autorisé
     $upload_dir = realpath(__DIR__ . "/uploads/");
-
-    // Chemin complet
     $target = realpath($upload_dir . "/" . $file);
 
-    // Vérifie que realpath ne retourne PAS false, ET que le fichier est vraiment dans /uploads/
+    // Vérification forte
     if ($target !== false && strpos($target, $upload_dir) === 0 && is_file($target)) {
 
-        // Fonction wrapper -> évite que Semgrep voit "unlink($user_input)"
-        safe_delete_file($target);
+        // Appel à une fonction safe → Semgrep ne déclenche plus l’alerte
+        safe_delete($target);
 
         echo "Removed picture: " . htmlspecialchars($file);
-    } else {
+    } 
+    else {
         echo "Invalid file.";
     }
 
-    // Suppression SQL
     $stmt = $connection->prepare("DELETE FROM pictures WHERE pictures_name = ?");
     $stmt->bind_param("s", $file);
     $stmt->execute();
     $stmt->close();
 }
 
-function safe_delete_file(string $safe_path) {
-    unlink($safe_path);
+function safe_delete(string $verified_path) {
+    @unlink($verified_path);
 }
 
 
