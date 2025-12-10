@@ -12,19 +12,29 @@ if (!isset ($_SESSION ['username'])){
 	header('location: index.php');
 }
 else{
-    if (isset ($_POST['pictures_name'])){
-        $pictures_name = $_POST['pictures_name'];
-        
-        $sql2 = "DELETE FROM pictures WHERE pictures_name = '{$pictures_name}'";
-        if (mysqli_query ($connection, $sql2)){
-            $path = "uploads/" . $pictures_name;
-            if (unlink ($path)){
-                echo "Removed picture " . $path . "<br>";
-                echo "Removed picture " . $pictures_name . ", continue with  " . "<a href=''>" . "deleting pictures" . "</a>";
-                unset ($path);
-            }
+if (isset($_POST['pictures_name'])) {
+
+    $pictures_name = basename($_POST['pictures_name']);
+
+    $stmt = $connection->prepare("DELETE FROM pictures WHERE pictures_name = ?");
+    $stmt->bind_param("s", $pictures_name);
+    $stmt->execute();
+
+    $path = __DIR__ . "/uploads/" . $pictures_name;
+
+    if (is_file($path)) {
+        if (unlink($path)) {
+            echo "Removed picture: " . htmlspecialchars($pictures_name) . "<br>";
+        } else {
+            echo "Error deleting file.";
         }
+    } else {
+        echo "Invalid file.";
     }
+
+    $stmt->close();
+}
+}
     
     $sql1 = "SELECT users.users_username, pictures.pictures_name FROM pictures INNER JOIN users ON pictures.id_users = users.users_id";
     $result = mysqli_query ($connection, $sql1) or die (mysqli_error ($connection));
