@@ -14,8 +14,11 @@ if (!isset($_SESSION['username'])) {
 
         $pictures_name = $_POST['pictures_name'];
 
-        $sql2 = "DELETE FROM pictures WHERE pictures_name = '{$pictures_name}'";
-        if (mysqli_query($connection, $sql2)) {
+        $stmt = $connection->prepare("DELETE FROM pictures WHERE pictures_name = ?");
+        $stmt->bind_param("s", $pictures_name);
+        $stmt->execute();
+
+        if ($stmt->affected_rows > 0) {
 
             $path = "uploads/" . $pictures_name;
 
@@ -25,6 +28,8 @@ if (!isset($_SESSION['username'])) {
                 unset($path);
             }
         }
+
+        $stmt->close(); // <-- juste ça à ajouter
     }
 
     $sql1 = "SELECT users.users_username, pictures.pictures_name 
