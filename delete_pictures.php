@@ -10,6 +10,7 @@ if (!isset($_SESSION['username'])) {
     header('location: index.php');
 } else {
 
+    
     if (isset($_POST['pictures_name'])) {
 
         $pictures_name = $_POST['pictures_name'];
@@ -20,17 +21,23 @@ if (!isset($_SESSION['username'])) {
 
         if ($stmt->affected_rows > 0) {
 
-            $path = "uploads/" . $pictures_name;
+    $clean_name = basename($pictures_name);
+    $clean_name = preg_replace("/[^A-Za-z0-9._-]/", "", $clean_name);
 
-            if (unlink($path)) {
+    $path = "uploads/" . $clean_name;
+
+    if (is_file($path) && unlink($path)) {
                 echo "Removed picture " . $path . "<br>";
                 echo "Removed picture " . $pictures_name . ", continue with  <a href=''>deleting pictures</a>";
                 unset($path);
             }
         }
 
-        $stmt->close(); // <-- juste ça à ajouter
+        $stmt->close(); 
     }
+
+
+
 
     $sql1 = "SELECT users.users_username, pictures.pictures_name 
              FROM pictures 
