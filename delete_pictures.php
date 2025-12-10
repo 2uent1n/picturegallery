@@ -19,8 +19,11 @@ else{
     }
 
         
-        $sql2 = "DELETE FROM pictures WHERE pictures_name = '{$pictures_name}'";
-        if (mysqli_query ($connection, $sql2)){
+        $stmt = $connection->prepare("DELETE FROM pictures WHERE pictures_name = ?");
+        $stmt->bind_param("s", $pictures_name);
+
+        if ($stmt->execute()) {
+
             $uploadDir = realpath(__DIR__ . '/uploads') . DIRECTORY_SEPARATOR;
             $path = $uploadDir . $pictures_name;
             $realPath = realpath($path);
@@ -40,6 +43,7 @@ else{
         unset($path);
     }
 }
+    $stmt->close();
 
         }
     }
