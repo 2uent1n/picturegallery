@@ -2,10 +2,8 @@
 
 $page_title = "Registration";
 
-
-if (!isset($_SESSION['csrf_token'])) {
-    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-}
+include 'mysqli_connect.php';
+include 'includes/csrf.php';
 
 include 'includes/header.html';
 
@@ -15,6 +13,8 @@ if (isset ($_SESSION['username'])){
 	echo "Logged in with name '" . $_SESSION['username'] . "'. You can <a href='logout.php'>logout</a>";
 }
 else{
+    // Generate CSRF token for the registration form
+    $csrf_token = generate_csrf_token();
     include 'includes/registration.html';
 
 ?>
