@@ -30,12 +30,16 @@ else{
                 die('Chemin de fichier invalide.');
             }
 
-            if (is_file($realPath) && unlink($realPath)){
+        // SAFE: $realPath is validated and confined to the uploads directory.
+        // nosemgrep: php.lang.security.unlink-use.unlink-use
+    if (is_file($realPath)) {
+
+    if (unlink($realPath)) {
                 echo "Removed picture uploads/" . $pictures_name . "<br>";
                 echo "Removed picture " . $pictures_name . ", continue with  " . "<a href=''>" . "deleting pictures" . "</a>";
                 unset ($path);
             }
-
+            } 
         }
     }
     
