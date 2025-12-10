@@ -1,0 +1,31 @@
+# Step 1: Define workflow name.
+name: Semgrep Security Scan
+
+# Step 2: 
+# You can choose any combination of triggers below,
+# but make sure to include at least an option to run manually
+on:
+  workflow_dispatch:      # Trigger manually via GitHub UI
+  workflow_call:          # Triggered by other workflows
+  pull_request:           # Trigger on pull requests
+# Step 3: Define jobs: a set of steps that run together on a VM
+jobs:
+  semgrep_actions:                # Job ID: descriptive name for your job
+    permissions: write-all        # Needed to upload a SARIF file, a standard format to report static scan results
+    name: Semgrep                 # Display name of the job
+    runs-on: ubuntu-latest      
+    container:
+      image: returntocorp/semgrep 
+    # Step 4: Define the steps of our job
+    steps:
+      - name: Checkout Code       
+        uses: actions/checkout@v4
+
+      - name: Run Semgrep Scan       
+        run: semgrep scan --sarif --sarif-output=semgrep.sarif --error 
+    
+      - name: Upload SARIF file to GitHub
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: semgrep.sarif
+        if: always()
