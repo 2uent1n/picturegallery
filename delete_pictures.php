@@ -12,36 +12,33 @@ if (!isset ($_SESSION ['username'])){
 	header('location: index.php');
 }
 else{
-
-if (isset($_POST['pictures_name'])) {
-
-    $file = basename($_POST['pictures_name']);
-    $upload_dir = realpath(__DIR__ . "/uploads/");
-    $target = realpath($upload_dir . "/" . $file);
-
-    // Vérification forte
-    if ($target !== false && strpos($target, $upload_dir) === 0 && is_file($target)) {
-
-        // Appel à une fonction safe → Semgrep ne déclenche plus l’alerte
-        safe_delete($target);
-
-        echo "Removed picture: " . htmlspecialchars($file);
-    } 
-    else {
-        echo "Invalid file.";
+    if (isset ($_POST['pictures_name'])){
+        $pictures_name = basename($_POST['pictures_name']); // empêche ../
+    if (!preg_match('/^[a-zA-Z0-9._-]+$/', $pictures_name)) {
+         die('Nom de fichier invalide.');
     }
 
-    $stmt = $connection->prepare("DELETE FROM pictures WHERE pictures_name = ?");
-    $stmt->bind_param("s", $file);
-    $stmt->execute();
-    $stmt->close();
-}
+        
+        $sql2 = "DELETE FROM pictures WHERE pictures_name = '{$pictures_name}'";
+        if (mysqli_query ($connection, $sql2)){
+            $uploadDir = realpath(__DIR__ . '/uploads') . DIRECTORY_SEPARATOR;
+            $path = $uploadDir . $pictures_name;
+            $realPath = realpath($path);
 
-function safe_delete(string $verified_path) {
-    @unlink($verified_path);
-}
+            // On vérifie que le fichier est bien dans le dossier uploads/
+            if ($realPath === false || strpos($realPath, $uploadDir) !== 0) {
+                die('Chemin de fichier invalide.');
+            }
 
+            if (is_file($realPath) && unlink($realPath)){
+                echo "Removed picture uploads/" . $pictures_name . "<br>";
+                echo "Removed picture " . $pictures_name . ", continue with  " . "<a href=''>" . "deleting pictures" . "</a>";
+                unset ($path);
+            }
 
+        }
+    }
+    
     $sql1 = "SELECT users.users_username, pictures.pictures_name FROM pictures INNER JOIN users ON pictures.id_users = users.users_id";
     $result = mysqli_query ($connection, $sql1) or die (mysqli_error ($connection));
     
@@ -68,4 +65,3 @@ function safe_delete(string $verified_path) {
 }
 
 ?>
-
