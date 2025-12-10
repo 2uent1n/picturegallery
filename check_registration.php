@@ -1,5 +1,7 @@
 <?php
 
+session_start();
+
 $page_title = "Check registration";
 
 include 'mysqli_connect.php';
@@ -7,6 +9,13 @@ include 'mysqli_connect.php';
 include 'includes/header.html';
 
 include 'includes/navbar.html';
+
+if (
+    !isset($_POST['csrf_token'], $_SESSION['csrf_token']) ||
+    $_POST['csrf_token'] !== $_SESSION['csrf_token']
+) {
+    die("CSRF validation failed ! Action interdite.");
+}
 
 if (isset ($_SESSION['username'])){
 	header('location: index.php');
