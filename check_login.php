@@ -13,9 +13,15 @@ else{
     $username = $_POST['username'];
     $password = $_POST['pass'];
 
-    $sql1 = "SELECT users_username, users_password FROM users WHERE users_username = '{$username}' AND users_password = '{$password}'";
+    $sql = "SELECT users_username, users_password 
+        FROM users 
+        WHERE users_username = ? AND users_password = ?";
 
-    $result = mysqli_query ($connection, $sql1) or die (mysqli_error ($connection));
+    $stmt = mysqli_prepare($connection, $sql);
+    mysqli_stmt_bind_param($stmt, "ss", $username, $password);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+
 
     if (mysqli_num_rows ($result) > 0){
         while ($row = mysqli_fetch_assoc ($result)){
